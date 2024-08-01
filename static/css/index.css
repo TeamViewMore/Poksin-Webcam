@@ -1,0 +1,62 @@
+.index {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    align-items: center;       
+    text-align: center;        
+    gap: 20px;                 
+    min-height: 100vh;          
+    padding: 40px 20px 20px;   
+    box-sizing: border-box;      
+}
+
+.logo img {
+    max-width: 100%;            
+    height: auto;         
+    margin-bottom: -10px;      
+}
+
+.webcam a {
+    font-size: 24px;          
+    color: black;
+    text-decoration: none;
+    background-color: white;
+    padding: 15px 40px;       
+    border-radius: 50px;        
+    border: 2px solid #7A29FF;
+    transition: background-color 0.3s, color 0.3s; 
+}
+
+.webcam a:hover {
+    background-color: #7A29FF; 
+    color: white;              
+}
+
+
+@media (max-width: 768px) {
+    .webcam a {
+        font-size: 20px;   
+        padding: 10px 30px;
+    }
+
+    .logo img {
+        max-width: 80%;   
+        margin-bottom: -8px; 
+    }
+}
+
+@media (max-width: 480px) {
+    .webcam a {
+        font-size: 18px;  
+        padding: 8px 20px; 
+    }
+
+    .logo img {
+        max-width: 70%;   
+        margin-bottom: -5px; 
+    }
+
+    .index {
+        gap: 20px;      
+    }
+}

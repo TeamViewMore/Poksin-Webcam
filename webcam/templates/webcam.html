@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,8 +7,11 @@
     <title>Webcam Stream</title>
 </head>
 <body>
-    <h1>Webcam Stream</h1>
+    <div>
+
+    </div>
     <a href="{% url 'index' %}">홈으로</a>
-    <img src="{% url 'video_feed' id %}" style="width: 100%; height: auto;" />
+    <img src="{% url 'video_feed' id %}" style="width: 100%; height: auto;" /> 
+    <!-- <img src="{% static 'img/logo.png' %}" style="width: 100%; height: auto;" /> -->
 </body>
 </html>

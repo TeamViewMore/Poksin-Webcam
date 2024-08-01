@@ -201,7 +201,7 @@ def login(request):
                 messages.error(request, '로그인에 실패했습니다.')
 
         else:
-            messages.error(request, f'로그인에 실패했습니다: 상태 코드 {response.status_code} 아이디와 비밀번호를 확인하세요')
+            messages.error(request, f'로그인에 실패했습니다: 상태 코드 {response.status_code}\n아이디와 비밀번호를 확인하세요')
 
     except requests.RequestException as e:
         # 요청 중 오류가 발생한 경우

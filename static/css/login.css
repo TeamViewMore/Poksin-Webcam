@@ -1,0 +1,100 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;     
+    height: 100vh;          
+    padding: 20px;           
+    box-sizing: border-box; 
+    position: relative;      
+}
+
+.back {
+    position: absolute;
+    top: 20px;             
+    left: 20px;            
+    width: 30px;           
+    height: auto;        
+    cursor: pointer;        
+}
+
+.back img {
+    width: 100%;    
+}
+
+.login {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;    
+    text-align: center;    
+    gap: 30px;            
+    width: 100%;             
+    max-width: 500px;      
+    box-sizing: border-box; 
+}
+
+.logo img {
+    max-width: 500px;
+    width: 100%;
+}
+
+.login_div {
+    width: 100%;
+    max-width: 500px;     
+    padding: 0 20px;    
+}
+
+.login_form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;          
+    align-items: center;  
+}
+
+.form_element {
+    background-color: #EBEBEB;
+    padding: 20px 30px;
+    font-size: 20px;
+    border-radius: 100px;
+    box-shadow: none; 
+    border: none;
+    outline: none;  
+    width: 100%;           
+    max-width: 400px;     
+    box-sizing: border-box;
+}
+
+.login_button {
+    font-size: 20px;
+    background-color: #7A29FF;
+    padding: 20px;
+    color: white;
+    border-radius: 100px;
+    box-shadow: none; 
+    border: none;
+    width: 100%;           
+    max-width: 400px;       
+    cursor: pointer;        
+    box-sizing: border-box;
+}
+
+.error_message {
+    color: #7A29FF;
+    font-size: 18px;       
+    width: 100%;           
+    max-width: 400px;     
+    text-align: center;    
+    box-sizing: border-box;
+    padding: 10px;        
+    border-radius: 8px;  
+    margin-top: 10px;     
+}
+
+@media (max-width: 600px) {
+    .error_message {
+        font-size: 16px;   
+        padding: 8px;    
+    }
+}
