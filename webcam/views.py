@@ -1,14 +1,34 @@
-from django.shortcuts import render, redirect
-from django.http import StreamingHttpResponse
+import os
 import cv2
 from ultralytics import YOLO
-import os
-from datetime import datetime
+from django.shortcuts import render, redirect
+from django.http import StreamingHttpResponse
 import requests
-from django.http import JsonResponse
 from django.contrib import messages
+import boto3
+from datetime import datetime
+import mysql.connector
+from dotenv import load_dotenv
+import json  # Import JSON module
 
+# .env 파일에서 환경 변수 로드
+load_dotenv()
 
+# 환경 변수에서 AWS 자격 증명 및 기타 설정 가져오기
+aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
+aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
+aws_region = os.getenv('AWS_REGION', 'ap-northeast-2')
+
+# AWS S3 클라이언트 설정
+s3_client = boto3.client(
+    's3',
+    aws_access_key_id=aws_access_key_id,
+    aws_secret_access_key=aws_secret_access_key,
+    region_name=aws_region
+)
+
+bucket_name = 'poksin'
+s3_folder = 'violence-frames/'
 
 # YOLO 모델 로드
 model = YOLO('./model/best.pt')
@@ -22,13 +42,52 @@ if not cap.isOpened():
 
 # 폭력 감지 상태 추적 변수
 consecutive_violence_count = 0
-violence_threshold = 5  # 연속 감지 횟수를 5로 변경
+violence_threshold = 5  # 연속 감지 횟수를 5로 설정
 
 # output 폴더 생성 (없으면)
 output_folder = 'output'
 os.makedirs(output_folder, exist_ok=True)
 
-def generate_frames():
+# MySQL 데이터베이스 연결 설정
+db_config = {
+    'host': os.getenv('DB_HOST'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'database': os.getenv('DB_NAME')
+}
+
+def insert_into_database(file_url, user_id):
+    """증거 메타데이터를 MySQL 데이터베이스에 삽입합니다."""
+    title = f"{datetime.now().strftime('%Y-%m-%d')}의 사진입니다."
+    description = "웹캠에서 찍힌 사진입니다."
+    created_at = datetime.now() 
+
+    try:
+        # MySQL 데이터베이스에 연결
+        connection = mysql.connector.connect(**db_config)
+        cursor = connection.cursor()
+
+        # EvidenceEntity 테이블에 데이터를 삽입하는 SQL 쿼리
+        query = """
+        INSERT INTO EvidenceEntity (title, description, fileUrls, user_id, category_id, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        # JSON 형식으로 URL을 리스트로 변환하여 삽입
+        file_urls = json.dumps([file_url])  # Store the file_url in a JSON array
+        cursor.execute(query, (title, description, file_urls, user_id, 3, created_at))
+        
+        # 트랜잭션 커밋
+        connection.commit()
+        print("EvidenceEntity에 데이터가 성공적으로 삽입되었습니다.")
+
+    except mysql.connector.Error as err:
+        print(f"Error: {err}")
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
+
+def generate_frames(user_id):
     global consecutive_violence_count
 
     while True:
@@ -37,7 +96,7 @@ def generate_frames():
             break
 
         # 객체 탐지 수행
-        results = model.predict(frame)
+        results = model.predict(frame, verbose=False)
         violence_detected = False
 
         # 탐지 결과 화면에 표시
@@ -48,7 +107,7 @@ def generate_frames():
                 label = model.names[label_idx]
                 confidence = box.conf[0]
 
-                # 폭력 감지 여부 판단 
+                # 폭력 감지 여부 판단
                 if confidence > 0.75:  # 신뢰도 기준
                     violence_detected = True
 
@@ -64,12 +123,28 @@ def generate_frames():
         else:
             consecutive_violence_count = 0
 
-        # 연속으로 5번 이상 폭력 감지된 경우 프레임 저장
+        # 연속으로 5번 이상 폭력 감지된 경우 프레임 저장 및 S3 업로드
         if consecutive_violence_count >= violence_threshold:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            file_path = os.path.join(output_folder, f'violence_detected_{timestamp}.jpg')
+            file_name = f'violence_detected_{timestamp}.jpg'
+            file_path = os.path.join(output_folder, file_name)
+
+            # 로컬에 이미지 저장
             cv2.imwrite(file_path, frame)
             print(f'Violence detected. Frame saved to {file_path}')
+
+            # S3에 이미지 업로드
+            s3_key = s3_folder + file_name
+            try:
+                s3_client.upload_file(file_path, bucket_name, s3_key)
+                print(f'Image uploaded to S3 successfully: {s3_key}')
+                # 업로드된 파일 URL 생성
+                file_url = f"https://{bucket_name}.s3.{aws_region}.amazonaws.com/{s3_key}"
+                # 데이터베이스에 레코드 삽입
+                insert_into_database(file_url, user_id)
+            except Exception as e:
+                print(f'S3 업로드 중 오류 발생: {e}')
+
             consecutive_violence_count = 0  # 카운트 리셋
 
         # 프레임을 JPEG 형식으로 인코딩
@@ -81,21 +156,17 @@ def generate_frames():
         # 각 프레임을 클라이언트에 전송
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        
 
 def webcam_stream(request, id):
-    print(id)
     # HTML 페이지 렌더링
-    return render(request, 'webcam.html')
+    return render(request, 'webcam.html', {"id" : id})
 
-def video_feed(request):
+def video_feed(request, id):
     # 비디오 피드를 클라이언트에 스트리밍
-    return StreamingHttpResponse(generate_frames(), content_type='multipart/x-mixed-replace; boundary=frame')
-
+    return StreamingHttpResponse(generate_frames(id), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def index(request):
     return render(request, 'index.html')
-
 
 def login(request):
     if request.method == "GET":
@@ -115,7 +186,6 @@ def login(request):
         # POST 요청
         response = requests.post(url, data=payload)
 
-        
         # 응답 상태 코드가 200이면 JSON 응답을 처리
         if response.status_code == 200:
             response_data = response.json()
@@ -141,9 +211,3 @@ def login(request):
         messages.error(request, f'요청 중 오류가 발생했습니다: {e}')
 
     return redirect('login')
-    
-
-
-
-
-    

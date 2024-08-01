@@ -7,6 +7,7 @@
 </head>
 <body>
     <h1>Webcam Stream</h1>
-    <img src="{% url 'video_feed' %}" style="width: 100%; height: auto;" />
+    <a href="{% url 'index' %}">홈으로</a>
+    <img src="{% url 'video_feed' id %}" style="width: 100%; height: auto;" />
 </body>
 </html>
