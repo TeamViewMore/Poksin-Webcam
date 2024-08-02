@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Stream</title>
     <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
+    <style>
 
+    </style>
 </head>
 <body>
     <div class="home">
@@ -14,26 +16,51 @@
             <img src="{% static 'img/home.png' %}" alt="home"> <span>홈으로</span>
         </a>
     </div>
-    <div class="webcam" id="webcamContainer" onclick="toggleWebcam()">
-        <img id="webcamFeed" src="{% url 'video_feed' id %}" alt="Webcam Feed" />
+    <div class="webcam-container" id="webcamContainer" onclick="toggleWebcam()">
+        <video id="webcamFeed" autoplay playsinline muted style="display: none;"></video>
+        <img id="staticImage" src="{% static 'img/stop_video.png' %}" alt="Static Image">
     </div>
     
     <script>
-        let isWebcamOn = true; 
+        let isWebcamOn = false; 
+        const webcamFeed = document.getElementById('webcamFeed');
+        const staticImage = document.getElementById('staticImage');
 
         function toggleWebcam() {
-            const webcamContainer = document.getElementById('webcamContainer');
-            const webcamFeed = document.getElementById('webcamFeed');
-            
             if (isWebcamOn) {
- 
-                webcamFeed.src = "{% static 'img/stop_video.png' %}";
-                isWebcamOn = false;
+                stopWebcam();
             } else {
-
-                webcamFeed.src = "{% url 'video_feed' id %}";
-                isWebcamOn = true;
+                startWebcam();
             }
+        }
+
+        function startWebcam() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        webcamFeed.srcObject = stream;
+                        isWebcamOn = true;
+                        staticImage.style.display = 'none';  // Hide static image
+                        webcamFeed.style.display = 'block';  // Show video feed
+                    })
+                    .catch(function(error) {
+                        console.error("Error accessing webcam: ", error);
+                        alert("Unable to access webcam. Please check your permissions.");
+                    });
+            } else {
+                alert("Webcam not supported by your browser.");
+            }
+        }
+
+        function stopWebcam() {
+            const stream = webcamFeed.srcObject;
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                webcamFeed.srcObject = null;
+            }
+            isWebcamOn = false;
+            staticImage.style.display = 'block';  // Show static image
+            webcamFeed.style.display = 'none';    // Hide video feed
         }
     </script>
 </body>
