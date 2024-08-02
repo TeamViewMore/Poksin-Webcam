@@ -70,15 +70,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'poksin.wsgi.application'
 
+import dj_database_url
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+}
+
+# MySQL Strict Mode 설정 (NO_AUTO_CREATE_USER 제거)
+DATABASES['default']['OPTIONS'] = {
+    'init_command': "SET sql_mode='STRICT_TRANS_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'",
 }
 
 
