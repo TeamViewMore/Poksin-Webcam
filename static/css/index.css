@@ -32,6 +32,9 @@
     color: white;              
 }
 
+div.info p {
+    color: #7A29FF;
+}
 
 @media (max-width: 768px) {
     .webcam a {
@@ -42,6 +45,13 @@
     .logo img {
         max-width: 80%;   
         margin-bottom: -8px; 
+    }
+
+    .info p {
+        color: #7A29FF;
+        font-size: 16px;      
+        line-height: 1.4;    
+        margin: 0 15px;       
     }
 }
 
@@ -58,5 +68,12 @@
 
     .index {
         gap: 20px;      
+    }
+
+    .info p {
+        color: #7A29FF;
+        font-size: 14px;      
+        line-height: 1.3;     
+        margin: 0 10px;       
     }
 }

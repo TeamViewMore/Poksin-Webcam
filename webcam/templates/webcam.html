@@ -5,13 +5,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Stream</title>
+    <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
+
 </head>
 <body>
-    <div>
-
+    <div class="home">
+        <a href="{% url 'index' %}">
+            <img src="{% static 'img/home.png' %}" alt="home"> <span>홈으로</span>
+        </a>
     </div>
-    <a href="{% url 'index' %}">홈으로</a>
-    <img src="{% url 'video_feed' id %}" style="width: 100%; height: auto;" /> 
-    <!-- <img src="{% static 'img/logo.png' %}" style="width: 100%; height: auto;" /> -->
+    <div class="webcam" id="webcamContainer" onclick="toggleWebcam()">
+        <img id="webcamFeed" src="{% url 'video_feed' id %}" alt="Webcam Feed" />
+    </div>
+    
+    <script>
+        let isWebcamOn = true; 
+
+        function toggleWebcam() {
+            const webcamContainer = document.getElementById('webcamContainer');
+            const webcamFeed = document.getElementById('webcamFeed');
+            
+            if (isWebcamOn) {
+ 
+                webcamFeed.src = "{% static 'img/stop_video.png' %}";
+                isWebcamOn = false;
+            } else {
+
+                webcamFeed.src = "{% url 'video_feed' id %}";
+                isWebcamOn = true;
+            }
+        }
+    </script>
 </body>
 </html>

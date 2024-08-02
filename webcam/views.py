@@ -108,7 +108,7 @@ def generate_frames(user_id):
                 confidence = box.conf[0]
 
                 # 폭력 감지 여부 판단
-                if confidence > 0.75:  # 신뢰도 기준
+                if confidence > 0.8:  # 신뢰도 기준
                     violence_detected = True
 
                 # 사각형 그리기
