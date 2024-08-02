@@ -7,7 +7,7 @@
     <title>Webcam Stream</title>
     <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
     <style>
-
+        /* 스타일 추가 */
     </style>
 </head>
 <body>
@@ -17,14 +17,15 @@
         </a>
     </div>
     <div class="webcam-container" id="webcamContainer" onclick="toggleWebcam()">
-        <video id="webcamFeed" autoplay playsinline muted style="display: none;"></video>
-        <img id="staticImage" src="{% static 'img/stop_video.png' %}" alt="Static Image">
+        <video id="webcamFeed" autoplay playsinline muted></video>
     </div>
     
     <script>
         let isWebcamOn = false; 
+        let mediaRecorder;
+        let recordedChunks = [];
         const webcamFeed = document.getElementById('webcamFeed');
-        const staticImage = document.getElementById('staticImage');
+        const userId = "{{ id }}";  // 사용자 ID를 템플릿에서 가져옴
 
         function toggleWebcam() {
             if (isWebcamOn) {
@@ -42,6 +43,7 @@
                         isWebcamOn = true;
                         staticImage.style.display = 'none';  
                         webcamFeed.style.display = 'block';  
+                        startRecording(stream);
                     })
                     .catch(function(error) {
                         console.error("Error accessing webcam: ", error);
@@ -61,6 +63,57 @@
             isWebcamOn = false;
             staticImage.style.display = 'block';  
             webcamFeed.style.display = 'none';    
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+            if (webcamFeed.srcObject) {
+                webcamFeed.srcObject.getTracks().forEach(track => track.stop());
+                webcamFeed.srcObject = null;
+            }
+            isWebcamOn = false;
+        }
+
+        function startRecording(stream) {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/mp4' });
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = function() {
+                const videoBlob = new Blob(recordedChunks, { type: 'video/mp4' });
+                recordedChunks = [];
+                uploadVideo(videoBlob);
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+                mediaRecorder.stop();
+                if (isWebcamOn) {
+                    startRecording(stream);
+                }
+            }, 60000); // 1 minute
+        }
+
+        function uploadVideo(blob) {
+            const formData = new FormData();
+            formData.append('video', blob);
+            formData.append('user_id', userId);
+
+            fetch("{% url 'upload_video' %}", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to upload video');
+                }
+                return response.json();
+            }).then(data => {
+                console.log('Video uploaded successfully:', data);
+            }).catch(error => {
+                console.error('Error uploading video:', error);
+            });
         }
     </script>
 </body>
