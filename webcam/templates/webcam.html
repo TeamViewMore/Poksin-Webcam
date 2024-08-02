@@ -40,8 +40,8 @@
                     .then(function(stream) {
                         webcamFeed.srcObject = stream;
                         isWebcamOn = true;
-                        staticImage.style.display = 'none';  // Hide static image
-                        webcamFeed.style.display = 'block';  // Show video feed
+                        staticImage.style.display = 'none';  
+                        webcamFeed.style.display = 'block';  
                     })
                     .catch(function(error) {
                         console.error("Error accessing webcam: ", error);
@@ -54,13 +54,13 @@
 
         function stopWebcam() {
             const stream = webcamFeed.srcObject;
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                webcamFeed.srcObject = null;
-            }
+            // if (stream) {
+            //     stream.getTracks().forEach(track => track.stop());
+            //     webcamFeed.srcObject = null;
+            // }
             isWebcamOn = false;
-            staticImage.style.display = 'block';  // Show static image
-            webcamFeed.style.display = 'none';    // Hide video feed
+            staticImage.style.display = 'block';  
+            webcamFeed.style.display = 'none';    
         }
     </script>
 </body>
