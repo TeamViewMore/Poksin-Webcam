@@ -78,9 +78,21 @@ load_dotenv()
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+# }
+
 DATABASES = {
-    'default': dj_database_url.config(default=os.getenv('DATABASE_URL'))
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.getenv('DB_NAME'),            # 사용할 데이터베이스 이름
+        'USER': os.getenv('DB_USER'),            # 데이터베이스 사용자 이름
+        'PASSWORD': os.getenv('DB_PASSWORD'),    # 데이터베이스 비밀번호
+        'HOST': os.getenv('DB_HOST'),            # 데이터베이스 서버 주소
+        'PORT': '3306',                          # MySQL 기본 포트
+    }
 }
+
 
 # MySQL Strict Mode 설정 (NO_AUTO_CREATE_USER 제거)
 DATABASES['default']['OPTIONS'] = {

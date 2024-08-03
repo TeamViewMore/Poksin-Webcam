@@ -32,7 +32,7 @@ s3_client = boto3.client(
 )
 
 bucket_name = 'poksin'
-s3_folder = 'video/'
+s3_folder = 'live/'
 
 @csrf_exempt
 def upload_video(request):
