@@ -71,7 +71,8 @@ def upload_video(request):
                 # 날짜만 비교하여 조회
                 evidence = EvidenceEntity.objects.get(
                     created_at__date=today,
-                    user_id=user_id
+                    user_id=user_id,
+                    category_id=category.id
                 )
                 logger.debug('Existing evidence found: %s', evidence)
 
