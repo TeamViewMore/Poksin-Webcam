@@ -48,7 +48,6 @@
 .login_form {
     display: flex;
     flex-direction: column;
-    gap: 2px;  
     width: 100%;          
     align-items: center;  
 }
@@ -108,14 +107,12 @@
 
     .form_element, .login_button  {
         font-size: 15px;
+        padding: 15px 20px;
     }
 
     .login_text h1 {
         font-size: 23px;
     }
 
-    .login_form  {
-        gap: 2px;
-    }
     
 }
