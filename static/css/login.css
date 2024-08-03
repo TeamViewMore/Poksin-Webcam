@@ -1,3 +1,7 @@
+body {
+    font-family: 'MyCustomFont', sans-serif;
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -48,7 +52,6 @@
 .login_form {
     display: flex;
     flex-direction: column;
-    gap: 10px;
     width: 100%;          
     align-items: center;  
 }
@@ -80,6 +83,10 @@
     box-sizing: border-box;
 }
 
+#password {
+    margin-bottom: 20px;
+}
+
 .error_message {
     color: #7A29FF;
     font-size: 18px;       
@@ -89,12 +96,27 @@
     box-sizing: border-box;
     padding: 10px;        
     border-radius: 8px;  
-    margin-top: 10px;     
+    margin-top: 10px; 
+    text-align: center;  
+    display: flex;
+    justify-content: center;  
 }
 
 @media (max-width: 600px) {
     .error_message {
         font-size: 16px;   
-        padding: 8px;    
+        padding: 8px;   
+        text-align: center; 
     }
+
+    .form_element, .login_button  {
+        font-size: 15px;
+        padding: 15px 20px;
+    }
+
+    .login_text h1 {
+        font-size: 23px;
+    }
+
+    
 }

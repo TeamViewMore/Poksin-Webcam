@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="{% static 'css/login.css' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
 </head>
 <body>
     <div class="container">
@@ -19,23 +22,21 @@
                 <img src="{% static 'img/logo.png' %}" alt="logo">
             </div>
             <div class="login_text">
-                <h1>로그인</h1>
+                <h1>WebCam 로그인</h1>
             </div>
             <div class="login_div">
                 <form class="login_form" action="{% url 'login' %}" method="POST"> 
                     {% csrf_token %}
                     <input type="text" name="username" placeholder="아이디" class="form_element"><br>
-                    <input type="password" name="password" placeholder="비밀번호" class="form_element"><br>
+                    <input id="password" name="password" placeholder="비밀번호" class="form_element"><br>
                     <button type="submit" class="login_button">로그인</button>
                 </form>
             </div>
             <div class="error_message">
                 {% if messages %}
-                    <ul class="messages">
                         {% for message in messages %}
                             <pre>{{ message }}</pre>
                         {% endfor %}
-                    </ul>
                 {% endif %}
             </div>
         </div>

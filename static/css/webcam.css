@@ -1,5 +1,10 @@
+body {
+    font-family: 'MyCustomFont', sans-serif;
+}
+
 body, html {
     height: 100%;
+    width: 100%;
     margin: 0;
     display: flex;
     justify-content: center;
@@ -28,6 +33,7 @@ body, html {
 
 .home span {
     font-size: 40px;
+    color: white;
 }
 
 .webcam {
@@ -41,8 +47,8 @@ body, html {
 
 .webcam-container {
     position: relative;
-    width: 640px;
-    height: 480px;
+    width: 100%;
+    height: 100%;
     cursor: pointer;
     overflow: hidden; 
 }
@@ -58,4 +64,26 @@ body, html {
 
 #staticImage {
     display: block; 
+}
+
+
+@media (max-width: 1000px) {
+    .home span {
+        font-size: 30px;
+    }
+    
+    .home img {
+        width: 75px;
+    }
+}
+
+
+@media (max-width: 600px) {
+    .home span {
+        font-size: 20px;
+    }
+    
+    .home img {
+        width: 50px;
+    }
 }
