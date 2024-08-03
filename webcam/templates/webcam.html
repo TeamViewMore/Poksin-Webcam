@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Stream</title>
     <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
-    <style>
-
-    </style>
 </head>
 <body>
     <div class="home">
@@ -16,23 +13,20 @@
             <img src="{% static 'img/home.png' %}" alt="home"> <span>홈으로</span>
         </a>
     </div>
-    <div class="webcam-container" id="webcamContainer" onclick="toggleWebcam()">
-        <video id="webcamFeed" autoplay playsinline muted style="display: none;"></video>
-        <img id="staticImage" src="{% static 'img/stop_video.png' %}" alt="Static Image">
+    <div class="webcam-container" id="webcamContainer" onclick="toggleView()">
+        <video id="webcamFeed" autoplay playsinline muted></video>
+        <img id="staticImage" src="{% static 'img/stop_video.png' %}" alt="Static Image" class="static-image">
     </div>
     
     <script>
-        let isWebcamOn = false; 
+        let isWebcamOn = true; 
+        let isRecording = true;
+        let mediaRecorder;
+        let recordedChunks = [];
         const webcamFeed = document.getElementById('webcamFeed');
         const staticImage = document.getElementById('staticImage');
-
-        function toggleWebcam() {
-            if (isWebcamOn) {
-                stopWebcam();
-            } else {
-                startWebcam();
-            }
-        }
+        const userId = "{{ id }}";  // 사용자 ID를 템플릿에서 가져옴
+        startWebcam();
 
         function startWebcam() {
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -40,8 +34,7 @@
                     .then(function(stream) {
                         webcamFeed.srcObject = stream;
                         isWebcamOn = true;
-                        staticImage.style.display = 'none';  
-                        webcamFeed.style.display = 'block';  
+                        startRecording(stream);
                     })
                     .catch(function(error) {
                         console.error("Error accessing webcam: ", error);
@@ -53,15 +46,84 @@
         }
 
         function stopWebcam() {
-            const stream = webcamFeed.srcObject;
-            // if (stream) {
-            //     stream.getTracks().forEach(track => track.stop());
+            // if (webcamFeed.srcObject) {
+            //     webcamFeed.srcObject.getTracks().forEach(track => track.stop());
             //     webcamFeed.srcObject = null;
             // }
             isWebcamOn = false;
-            staticImage.style.display = 'block';  
-            webcamFeed.style.display = 'none';    
         }
+
+        function toggleView() {
+            if (webcamFeed.style.display === 'none') {
+                webcamFeed.style.display = 'block';
+                staticImage.style.display = 'none';
+                // if (!isWebcamOn) {
+                //     startWebcam();
+                // }
+            } else {
+                webcamFeed.style.display = 'none';
+                staticImage.style.display = 'block';
+            }
+        }
+
+        function startRecording(stream) {
+            mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+            isRecording = true;
+            recordedChunks = [];
+
+            mediaRecorder.ondataavailable = function(event) {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = function() {
+                const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                recordedChunks = [];
+                uploadVideo(videoBlob);
+                if (isRecording) {
+                    startRecording(stream);
+                }
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+                if (isRecording) {
+                    mediaRecorder.stop();
+                }
+            }, 60000); // 1 minute
+        }
+
+        // function stopRecording() {
+        //     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        //         mediaRecorder.stop();
+        //         isRecording = false;
+        //     }
+        // }
+
+        function uploadVideo(blob) {
+            const formData = new FormData();
+            formData.append('video', blob);
+            formData.append('user_id', userId);
+
+            fetch("{% url 'upload_video' %}", {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to upload video');
+                }
+                return response.json();
+            }).then(data => {
+                console.log('Video uploaded successfully:', data);
+            }).catch(error => {
+                console.error('Error uploading video:', error);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            startWebcam();
+        });
     </script>
 </body>
 </html>
