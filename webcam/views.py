@@ -10,6 +10,7 @@ from datetime import datetime
 from .models import EvidenceEntity, CategoryEntity
 import logging
 import json
+from django.db.models import Q
 
 # 로깅 설정
 logging.basicConfig(level=logging.DEBUG)
@@ -44,7 +45,6 @@ def upload_video(request):
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         s3_key = f"{s3_folder}{timestamp}.mp4"
         file_url = f"https://{bucket_name}.s3.{aws_region}.amazonaws.com/{s3_key}"
-        file_url_list = json.dumps([file_url])  # Convert URL to JSON list
 
         logger.debug(f'Video received: {video}')
         logger.debug(f'S3 key: {s3_key}')
@@ -55,20 +55,53 @@ def upload_video(request):
             s3_client.upload_fileobj(video, bucket_name, s3_key)
             logger.debug('Video uploaded to S3')
 
-            # 카테고리 조회 (예: 'VIDEO' 카테고리)
+            # 카테고리 조회 (video와 구분하기 위해 WEBCAM 카테고리를 생성함)
             try:
-                category = CategoryEntity.objects.get(name='VIDEO')
+                category = CategoryEntity.objects.get(name='WEBCAM')
             except CategoryEntity.DoesNotExist:
                 return JsonResponse({'status': 'error', 'message': 'Category not found.'})
+            
+            # 유저의 현재 날짜 webcam 데이터가 있는지 확인 
+            today = datetime.today().date()
+            
+            # evidence 변수를 초기화
+            evidence = None
 
-            # 데이터베이스에 저장
-            evidence = EvidenceEntity(
-                description='Webcam video',
-                fileUrls=file_url_list,  # Save as JSON list
-                title=f"Video at {timestamp}",
-                category_id=category,  # 올바른 카테고리 객체 사용
-                user_id=user_id
-            )
+            try:
+                # 날짜만 비교하여 조회
+                evidence = EvidenceEntity.objects.get(
+                    created_at__date=today,
+                    user_id=user_id
+                )
+                logger.debug('Existing evidence found: %s', evidence)
+
+            except EvidenceEntity.DoesNotExist:
+                # evidence가 존재하지 않을 경우 url 빈 JSON 배열을 생성함 
+                evidence = EvidenceEntity.objects.create(
+                    description='Webcam video',
+                    fileUrls=json.dumps([]),  # 빈 JSON 배열로 초기화
+                    title=f"Video at {timestamp}",
+                    category_id=category,
+                    user_id=user_id,
+                    done=False
+                )
+                logger.debug('New evidence created: %s', evidence)
+
+            except EvidenceEntity.MultipleObjectsReturned:
+                # 동일한 날짜에 여러 객체가 존재할 때 예외 처리 진행 
+                logger.error("Multiple evidences found for today.")
+                return JsonResponse({'status': 'error', 'message': 'Multiple evidences found for today.'})
+
+            # 기존 fileUrls를 JSON 문자열에서 Python 리스트로 변환
+            user_file_list = json.loads(evidence.fileUrls)
+            user_file_list.append(file_url)
+            file_url_json_list = json.dumps(user_file_list)
+            
+            logger.debug('Updated file URL list: %s', file_url_json_list)
+
+            # 데이터베이스 수정 
+            evidence.fileUrls = file_url_json_list
+            evidence.done = False
             evidence.save()
             logger.debug('Video saved to database')
 
@@ -95,6 +128,7 @@ def upload_video(request):
 
     logger.error('Invalid request: no video found or method is not POST')
     return JsonResponse({'status': 'error', 'message': 'Invalid request.'})
+
 
 def webcam_stream(request, id):
     return render(request, 'webcam.html', {"id": id})
