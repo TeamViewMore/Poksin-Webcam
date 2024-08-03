@@ -1,8 +1,5 @@
-@font-face {
-    font-family: 'MyCustomFont';
-    src: url('{% static "fonts/MyFont.woff" %}') format('woff');
-    font-weight: normal;
-    font-style: normal;
+body {
+    font-family: 'MyCustomFont', sans-serif;
 }
 
 .index {
