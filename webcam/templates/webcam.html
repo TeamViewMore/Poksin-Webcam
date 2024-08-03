@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Stream</title>
     <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
 </head>
 <body>
     <div class="home">
@@ -91,7 +92,7 @@
                 if (isRecording) {
                     mediaRecorder.stop();
                 }
-            }, 60000); // 1 minute
+            }, 10000); // 1 minute
         }
 
         // function stopRecording() {
