@@ -8,11 +8,10 @@
     <link rel="stylesheet" href="{% static 'css/webcam.css' %}">
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
-
 </head>
 <body>
     <div class="home">
-        <a href="{% url 'index' %}">
+        <a href="{% url 'index' %}" id="homeButton">
             <img src="{% static 'img/home.png' %}" alt="home"> <span>홈으로</span>
         </a>
     </div>
@@ -49,10 +48,10 @@
         }
 
         function stopWebcam() {
-            // if (webcamFeed.srcObject) {
-            //     webcamFeed.srcObject.getTracks().forEach(track => track.stop());
-            //     webcamFeed.srcObject = null;
-            // }
+            if (webcamFeed.srcObject) {
+                webcamFeed.srcObject.getTracks().forEach(track => track.stop());
+                webcamFeed.srcObject = null;
+            }
             isWebcamOn = false;
         }
 
@@ -60,9 +59,9 @@
             if (webcamFeed.style.display === 'none') {
                 webcamFeed.style.display = 'block';
                 staticImage.style.display = 'none';
-                // if (!isWebcamOn) {
-                //     startWebcam();
-                // }
+                if (!isWebcamOn) {
+                    startWebcam();
+                }
             } else {
                 webcamFeed.style.display = 'none';
                 staticImage.style.display = 'block';
@@ -97,35 +96,57 @@
             }, 300000); // 5 minutes
         }
 
-        // function stopRecording() {
-        //     if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        //         mediaRecorder.stop();
-        //         isRecording = false;
-        //     }
-        // }
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                isRecording = false;
+            }
+        }
 
         function uploadVideo(blob) {
-            const formData = new FormData();
-            formData.append('video', blob);
-            formData.append('user_id', userId);
+            return new Promise((resolve, reject) => {
+                const formData = new FormData();
+                formData.append('video', blob);
+                formData.append('user_id', userId);
 
-            fetch("{% url 'upload_video' %}", {
-                method: 'POST',
-                body: formData
-            }).then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to upload video');
-                }
-                return response.json();
-            }).then(data => {
-                console.log('Video uploaded successfully:', data);
-            }).catch(error => {
-                console.error('Error uploading video:', error);
+                fetch("{% url 'upload_video' %}", {
+                    method: 'POST',
+                    body: formData
+                }).then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to upload video');
+                    }
+                    return response.json();
+                }).then(data => {
+                    console.log('Video uploaded successfully:', data);
+                    resolve();
+                }).catch(error => {
+                    console.error('Error uploading video:', error);
+                    reject(error);
+                });
             });
         }
 
         window.addEventListener('load', () => {
             startWebcam();
+        });
+
+        const homeButton = document.getElementById('homeButton');
+        homeButton.addEventListener('click', async (event) => {
+            if (isRecording) {
+                event.preventDefault(); 
+                stopRecording(); 
+                if (recordedChunks.length > 0) {
+                    try {
+                        await uploadVideo(new Blob(recordedChunks, { type: 'video/webm' })); 
+                        window.location.href = "/"; 
+                    } catch (error) {
+                        console.error('Failed to upload before leaving', error);
+                    }
+                } else {
+                    window.location.href = "/"; 
+                }
+            }
         });
     </script>
 </body>
