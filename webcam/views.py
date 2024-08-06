@@ -72,7 +72,8 @@ def upload_video(request):
                 evidence = EvidenceEntity.objects.get(
                     created_at__date=today,
                     user_id=user_id,
-                    category_id=category.id
+                    category_id=category.id,
+                    evidenceCreatedAt=today
                 )
                 logger.debug('Existing evidence found: %s', evidence)
 
