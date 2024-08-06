@@ -70,7 +70,7 @@ def upload_video(request):
             try:
                 # 날짜만 비교하여 조회
                 evidence = EvidenceEntity.objects.get(
-                    created_at__date=today,
+                    evidencdCreatedAt=today,
                     user_id=user_id,
                     category_id=category.id
                 )
@@ -84,7 +84,8 @@ def upload_video(request):
                     title=f"Video at {timestamp}",
                     category_id=category,
                     user_id=user_id,
-                    done=False
+                    done=False,
+                    evidencdCreatedAt=today
                 )
                 logger.debug('New evidence created: %s', evidence)
 

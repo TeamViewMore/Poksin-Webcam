@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 class CategoryEntity(models.Model):
     name = models.CharField(max_length=255)
@@ -18,6 +19,7 @@ class EvidenceEntity(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
     category_id = models.ForeignKey(CategoryEntity, on_delete=models.CASCADE, db_column='category_id')
     user_id = models.BigIntegerField()
+    evidencdCreatedAt = models.DateField(default=timezone.now) 
 
     class Meta:
         db_table = 'EvidenceEntity'
