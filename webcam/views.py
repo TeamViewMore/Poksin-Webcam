@@ -73,7 +73,7 @@ def upload_video(request):
                     evidencdCreatedAt=today,
                     user_id=user_id,
                     category_id=category.id,
-                    evidenceCreatedAt=today
+                    evidencdCreatedAt=today
                 )
                 logger.debug('Existing evidence found: %s', evidence)
 
