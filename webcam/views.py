@@ -107,7 +107,7 @@ def upload_video(request):
             logger.debug('Video saved to database')
 
             # 데이터 저장 후 POST 요청 보내기
-            post_url = 'http://43.201.133.81/detect-violence/'
+            post_url = 'http://43.200.183.167/detect-violence/'
             payload = {
                 'evidence_id': evidence.id,
                 'file_name': s3_key.split('/')[1]
