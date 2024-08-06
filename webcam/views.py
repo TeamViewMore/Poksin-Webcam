@@ -70,7 +70,6 @@ def upload_video(request):
             try:
                 # 날짜만 비교하여 조회
                 evidence = EvidenceEntity.objects.get(
-                    evidencdCreatedAt=today,
                     user_id=user_id,
                     category_id=category.id,
                     evidencdCreatedAt=today
